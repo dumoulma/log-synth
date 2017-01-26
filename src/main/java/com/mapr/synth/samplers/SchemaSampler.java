@@ -48,14 +48,15 @@ public class SchemaSampler implements Sampler<JsonNode> {
         init(s);
     }
 
+    @SuppressWarnings("RedundantTypeArguments")
     public SchemaSampler(String schemaDefinition) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
         mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
         mapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
 
-        init(mapper.<List<FieldSampler>>readValue(schemaDefinition, new TypeReference<List<FieldSampler>>() {
-        }));
+        init(mapper.<List<FieldSampler>>readValue(schemaDefinition,
+                                                  new TypeReference<List<FieldSampler>>() {}));
     }
 
     public SchemaSampler(File input) throws IOException {
@@ -73,12 +74,7 @@ public class SchemaSampler implements Sampler<JsonNode> {
 
     private void init(List<FieldSampler> s) {
         schema = s;
-        fields = Lists.transform(schema, new Function<FieldSampler, String>() {
-            @Override
-            public String apply(FieldSampler input) {
-                return input.getName();
-            }
-        });
+        fields = Lists.transform(schema, input -> input.getName());
     }
 
     @Override

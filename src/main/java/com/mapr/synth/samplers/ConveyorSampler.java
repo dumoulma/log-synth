@@ -1,31 +1,17 @@
 package com.mapr.synth.samplers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mapr.synth.UnitParser;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
-import processing.data.JSONArray;
 
-
-/*
-[
-  {"name":"conveyor1", "class":"conveyor", "arrival": "4/day",
-    "oretype": ["A","B","C"],
-    "deflector": "10 deg", "deflectorvar": "5 deg",
-    "moisture": "15 %", "moisturevar": "5 %",
-    "laser": "50 mm", "laservar": "20 mm",
-    "flow": "6000 tph", "flowvar": "500 tph"
-  }
-]
- */
 @SuppressWarnings({"unused", "FieldCanBeLocal"})
 public class ConveyorSampler extends FieldSampler {
   private static final ObjectMapper mapper = new ObjectMapper();
@@ -35,7 +21,7 @@ public class ConveyorSampler extends FieldSampler {
   private final Random rand = new Random();
 
   private double trainInterval = 0;                                // in train/day
-  private List<String> oreTypes;
+  private List<String> oreTypes = new ArrayList<>();
   private String prevOreType;
   private double deflectorDeg;
   private double deflectorDegVar;
@@ -51,8 +37,8 @@ public class ConveyorSampler extends FieldSampler {
     this.trainInterval = 1.0 / UnitParser.parseRate(rate);
   }
 
-  public void setOreType(JSONArray jsonArray) {
-    oreTypes = Arrays.asList(jsonArray.getStringArray());
+  public void setOreTypes(String[] ores) {
+    oreTypes.addAll(Arrays.asList(ores));
   }
 
   public void setDeflector(String angle) {
@@ -64,53 +50,62 @@ public class ConveyorSampler extends FieldSampler {
   }
 
   public void setMoisture(String moisture) {
-    this.moisturePct = 1.0 / UnitParser.parsePercentage(moisture);
+    this.moisturePct = UnitParser.parsePercentage(moisture);
   }
 
   public void setMoistureVar(String moistureVar) {
-    this.moisturePctVar = 1.0 / UnitParser.parsePercentage(moistureVar);
+    this.moisturePctVar = UnitParser.parsePercentage(moistureVar);
   }
 
   public void setLaser(String distance) {
-    this.laserMilli = 1.0 / UnitParser.parseDistance(distance);
+    this.laserMilli = UnitParser.parseDistance(distance);
   }
 
   public void setLaserVar(String distanceVar) {
-    this.laserMilliVar = 1.0 / UnitParser.parseRate(distanceVar);
+    this.laserMilliVar = UnitParser.parseDistance(distanceVar);
   }
 
-  public void setFlow(String rate) {
-    this.flowTph = 1.0 / UnitParser.parseConveyorFlow(rate);
+  public void setFlow(String flow) {
+    this.flowTph = UnitParser.parseConveyorFlow(flow);
   }
 
-  public void setFlowVar(String rate) {
-    this.flowTphVar = 1.0 / UnitParser.parseRate(rate);
+  public void setFlowVar(String flowVar) {
+    this.flowTphVar = UnitParser.parseConveyorFlow(flowVar);
   }
 
   @Override
   public JsonNode sample() {
     currentTime += -Math.log(rand.nextDouble()) * trainInterval;
 
-    //double nominalSpeed = averageSpeed + rand.nextGaussian() * sdSpeed;
+    final ObjectNode objectNode = mapper.createObjectNode();
+    objectNode.set("oreType", nodeFactory.textNode(oreTypes.get(rand.nextInt(3))));
+    objectNode.set("prevOreType", nodeFactory.textNode(oreTypes.get(rand.nextInt(3))));
+    objectNode.set("deflectorDeg",
+                   nodeFactory.numberNode(deflectorDeg + rand.nextGaussian() * deflectorDegVar));
+    objectNode.set("moisturePct",
+                   nodeFactory.numberNode(moisturePct + rand.nextGaussian() * moisturePctVar));
+    objectNode.set("laserMilli",
+                   nodeFactory.numberNode(laserMilli + rand.nextGaussian() * laserMilliVar));
+    objectNode.set("flowTph", nodeFactory.numberNode(flowTph + rand.nextGaussian() * flowTphVar));
+    objectNode.set("timestamp", nodeFactory.numberNode(currentTime));
+    return objectNode;
+  }
 
-    double t = currentTime;
-    double location = 0;
-    Map<String, String> data = new HashMap<>();
-    data.put("oreType", oreTypes.get(rand.nextInt(3)));
-    data.put("prevOreType", oreTypes.get(rand.nextInt(3)));
-    data.put("deflectorDeg", "");
-    data.put("deflectorDegVar", "");
-    data.put("moisturePct", "");
-    data.put("moisturePctVar", "");
-    data.put("laserMilli", "");
-    data.put("laserMilliVar", "");
-    data.put("flowTph", "");
-    data.put("flowTphVar", "");
-    try {
-      return mapper.valueToTree(mapper.writeValueAsString(data));
-    } catch (JsonProcessingException e) {
-      e.printStackTrace();
-    }
-    return nodeFactory.objectNode();
+  @Override
+  public String toString() {
+    return "ConveyorSampler{" +
+            ", trainInterval=" + trainInterval +
+            ", oreTypes=" + oreTypes +
+            ", prevOreType='" + prevOreType + '\'' +
+            ", deflectorDeg=" + deflectorDeg +
+            ", deflectorDegVar=" + deflectorDegVar +
+            ", moisturePct=" + moisturePct +
+            ", moisturePctVar=" + moisturePctVar +
+            ", laserMilli=" + laserMilli +
+            ", laserMilliVar=" + laserMilliVar +
+            ", flowTph=" + flowTph +
+            ", flowTphVar=" + flowTphVar +
+            ", currentTime=" + currentTime +
+            '}';
   }
 }
