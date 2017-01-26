@@ -87,7 +87,7 @@ public class ConveyorSampler extends FieldSampler {
     objectNode.set("laserMilli",
                    nodeFactory.numberNode(laserMilli + rand.nextGaussian() * laserMilliVar));
     objectNode.set("flowTph", nodeFactory.numberNode(flowTph + rand.nextGaussian() * flowTphVar));
-    objectNode.set("timestamp", nodeFactory.numberNode(currentTime));
+    objectNode.set("delayHr", nodeFactory.numberNode(currentTime*0.0002777));
     return objectNode;
   }
 

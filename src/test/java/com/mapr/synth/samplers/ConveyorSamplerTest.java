@@ -53,7 +53,7 @@ public class ConveyorSamplerTest {
     for (int i = 0; i < 10000; i++) {
       // time to first sensor should show steady increase
       JsonNode x = s.sample();
-      double t = x.get("delayed").get(0).get("time").asDouble();
+      double t = x.get("conveyor").get("delayHr").asDouble();
       double delay = t - previous;
       double expt = Math.exp(-delay / 60);
       assertTrue(expt >= 0);
