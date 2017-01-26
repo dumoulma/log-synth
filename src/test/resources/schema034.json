@@ -1,0 +1,9 @@
+[
+  {"name":"conveyor1", "class":"conveyor", "arrival": "4/day",
+    "oretype": ["A","B","C"],
+    "deflector": "10 deg", "deflectorvar": "5 deg",
+    "moisture": "15 %", "moisturevar": "5 %",
+    "laser": "50 mm", "laservar": "20 mm",
+    "flow": "6000 tph", "flowvar": "500 tph"
+  }
+]
