@@ -99,4 +99,61 @@ public class UnitParserTest {
             assertTrue("Bad message: ", e.getMessage().contains("Bad unit"));
         }
     }
+
+    @Test
+    public void testParseAngle() throws Exception {
+        assertEquals(1.0, UnitParser.parseAngle("1 deg  "), 0);
+        assertEquals(10.0, UnitParser.parseAngle("10 deg  "), 0);
+        assertEquals(0.5, UnitParser.parseAngle("0.5 deg  "), 0);
+        try {
+            UnitParser.parseAngle(" 1 mph");
+            fail("Should have caught bad expression");
+        } catch (IllegalArgumentException e) {
+            assertTrue("Bad exception: " + e.getMessage(), e.getMessage().contains("Invalid angle"));
+        }
+        try {
+            UnitParser.parseAngle(" 1 / xyz");
+            fail("Should have caught bad expression");
+        } catch (IllegalArgumentException e) {
+            assertTrue("Bad exception: " + e.getMessage(), e.getMessage().contains("Invalid angle"));
+        }
+    }
+
+    @Test
+    public void testParsePercentage() throws Exception {
+        assertEquals(1.0, UnitParser.parsePercentage("1 %  "), 0);
+        assertEquals(10.0, UnitParser.parsePercentage("10.0 %  "), 0);
+        assertEquals(100.5, UnitParser.parsePercentage("100.5 %  "), 0);
+        try {
+            UnitParser.parsePercentage(" 1 mph");
+            fail("Should have caught bad expression");
+        } catch (IllegalArgumentException e) {
+            assertTrue("Bad exception: " + e.getMessage(), e.getMessage().contains("Invalid percentage"));
+        }
+        try {
+            UnitParser.parsePercentage(" 1 / xyz");
+            fail("Should have caught bad expression");
+        } catch (IllegalArgumentException e) {
+            assertTrue("Bad exception: " + e.getMessage(), e.getMessage().contains("Invalid percentage"));
+        }
+    }
+
+    @Test
+    public void testParseConveyorFlow() throws Exception {
+        assertEquals(0.277, UnitParser.parseConveyorFlow("1 tph  "), 0.001);
+        assertEquals(2.777, UnitParser.parseConveyorFlow("10.0 tph  "), 0.001);
+        assertEquals(1.527, UnitParser.parseConveyorFlow("5.5 tph  "), 0.001);
+        try {
+            UnitParser.parseConveyorFlow(" 1 mph");
+            fail("Should have caught bad expression");
+        } catch (IllegalArgumentException e) {
+            assertTrue("Bad exception: " + e.getMessage(), e.getMessage().contains("Invalid conveyor flow"));
+        }
+        try {
+            UnitParser.parseConveyorFlow(" 1 / xyz");
+            fail("Should have caught bad expression");
+        } catch (IllegalArgumentException e) {
+            assertTrue("Bad exception: " + e.getMessage(), e.getMessage().contains("Invalid conveyor flow"));
+        }
+    }
 }

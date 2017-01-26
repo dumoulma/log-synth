@@ -38,9 +38,8 @@ public class UnitParser {
 
   private static final double KG = 1;
   private static final double METRIC_TON = 1000 * KG;
-  private static final double PERCENT = 1;
 
-  private static final double DAY = TimeUnit.DAYS.toSeconds(1);
+  private static final double PERCENT = 1;
 
   public static final String TIME = "(([smhd])|sec|second|m|min|minute|h|hour|d|day)";
   private static final Pattern ratePattern = Pattern.compile("([0-9.e\\-]+)\\s*/\\s*" + TIME);
@@ -89,6 +88,10 @@ public class UnitParser {
 
   private static final Map<String, Double> percentMap = ImmutableMap.of(
           "%", PERCENT);
+
+  private static final Map<String, Double> weightMap = ImmutableMap.of(
+          "t", METRIC_TON,
+          "Kg", KG);
 
   private static double unitParse(String value, Pattern pattern, Map<String, Double> translation,
                                   String errorFormat, boolean invertUnit) {
@@ -149,10 +152,10 @@ public class UnitParser {
   }
 
   public static double parsePercentage(String pct) {
-    return unitParse(pct, percentagePattern, percentMap, "Invalid rate argument: %s", false);
+    return unitParse(pct, percentagePattern, percentMap, "Invalid percentage argument: %s", false);
   }
 
-  public static double parseConveyorFlow(String rate) {
-    return unitParse(rate, conveyorFlowPattern, conveyorFlowMap, "Invalid rate argument: %s", true);
+  public static double parseConveyorFlow(String flow) {
+    return unitParse(flow, conveyorFlowPattern, conveyorFlowMap, "Invalid conveyor flow argument: %s", false);
   }
 }
