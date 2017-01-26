@@ -29,25 +29,27 @@ import java.util.regex.Pattern;
 /**
  * Handy routines for parsing strings like "5 min", "3 mph" or "10/day"
  */
+@SuppressWarnings("WeakerAccess")
 public class UnitParser {
   private static final double INCH = 2.54e-2;
+  private static final double CM = 0.1;
+  private static final double MM = 0.01;
   private static final double FOOT = 12 * INCH;
   private static final double MILE = 5280 * FOOT;
   private static final double HOUR = TimeUnit.HOURS.toSeconds(1);
   private static final double DEGREE = 1;
 
-  private static final double KG = 1;
-  private static final double METRIC_TON = 1000 * KG;
+  private static final double TONS_PER_HOUR = 1.0;
 
   private static final double PERCENT = 1;
 
-  public static final String TIME = "(([smhd])|sec|second|m|min|minute|h|hour|d|day)";
+  private static final String TIME = "(([smhd])|sec|second|m|min|minute|h|hour|d|day)";
   private static final Pattern ratePattern = Pattern.compile("([0-9.e\\-]+)\\s*/\\s*" + TIME);
   private static final Pattern timePattern = Pattern.compile("([0-9.e\\-]+)\\s*" + TIME + "?");
   private static final Pattern speedPattern = Pattern.compile(
           "([0-9.e\\-]+)\\s*((mph)|(kph)|(m/s))?");
   private static final Pattern distancePattern = Pattern.compile(
-          "([0-9.e\\-]+)\\s*((m)|(km)|(mile))?");
+          "([0-9.e\\-]+)\\s*((mm)|(cm)|(m)|(km)|(mile))?");
   private static final Pattern conveyorFlowPattern = Pattern.compile("([0-9.e\\-]+)\\s*(tph)?");
   private static final Pattern anglePattern = Pattern.compile("([0-9.e\\-]+)\\s*(deg)?");
   private static final Pattern percentagePattern = Pattern.compile("([0-9.e\\-]+)\\s*(%)?");
@@ -69,11 +71,14 @@ public class UnitParser {
           .put("days", (double) TimeUnit.DAYS.toSeconds(1L))
           .build();
 
-  private static final Map<String, Double> distanceMap = ImmutableMap.of(
-          "km", 1000.0,
-          "mile", MILE,
-          "miles", MILE,
-          "m", 1.0);
+  private static final Map<String, Double> distanceMap =
+          new ImmutableMap.Builder<String, Double>()
+                  .put("km", 1000.0)
+                  .put("mile", MILE)
+                  .put("miles", MILE)
+                  .put("m", 1.0)
+                  .put("cm", CM)
+                  .put("mm", MM).build();
 
   private static final Map<String, Double> speedMap = ImmutableMap.of(
           "mph", MILE / HOUR,
@@ -81,17 +86,13 @@ public class UnitParser {
           "m/s", 1.0);
 
   private static final Map<String, Double> conveyorFlowMap = ImmutableMap.of(
-          "tph", METRIC_TON / HOUR);
+          "tph", TONS_PER_HOUR);
 
   private static final Map<String, Double> angleMap = ImmutableMap.of(
           "deg", DEGREE);
 
   private static final Map<String, Double> percentMap = ImmutableMap.of(
           "%", PERCENT);
-
-  private static final Map<String, Double> weightMap = ImmutableMap.of(
-          "t", METRIC_TON,
-          "Kg", KG);
 
   private static double unitParse(String value, Pattern pattern, Map<String, Double> translation,
                                   String errorFormat, boolean invertUnit) {
@@ -156,6 +157,7 @@ public class UnitParser {
   }
 
   public static double parseConveyorFlow(String flow) {
-    return unitParse(flow, conveyorFlowPattern, conveyorFlowMap, "Invalid conveyor flow argument: %s", false);
+    return unitParse(flow, conveyorFlowPattern, conveyorFlowMap,
+                     "Invalid conveyor flow argument: %s", false);
   }
 }
