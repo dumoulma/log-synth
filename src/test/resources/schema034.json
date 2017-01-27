@@ -1,9 +1,16 @@
 [
-  {"name":"conveyor", "class":"conveyor", "arrival": "4/day",
-    "oreTypes": ["A","B","C"],
-    "deflector": "10 deg", "deflectorVar": "5 deg",
-    "moisture": "15 %", "moistureVar": "5 %",
-    "laser": "50 mm", "laserVar": "20 mm",
-    "flow": "6000 tph", "flowVar": "500 tph"
+  {
+    "name": "conveyor",
+    "class": "conveyor",
+    "arrival": "4/day",
+    "oreTypes": ["A", "B", "C"],
+    "deflector": "10 deg",
+    "deflectorVar": "5 deg",
+    "moisture": "15 %",
+    "moistureVar": "5 %",
+    "laser": "60 mm",
+    "laserVar": "60 mm",
+    "flow": "9000 tph",
+    "flowVar": "4500 tph"
   }
 ]

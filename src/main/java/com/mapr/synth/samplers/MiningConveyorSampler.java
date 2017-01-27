@@ -13,10 +13,12 @@ import java.util.Random;
 
 
 @SuppressWarnings({"unused", "FieldCanBeLocal"})
-public class ConveyorSampler extends FieldSampler {
+public class MiningConveyorSampler extends FieldSampler {
   private static final ObjectMapper mapper = new ObjectMapper();
 
   private static final JsonNodeFactory nodeFactory = JsonNodeFactory.withExactBigDecimals(false);
+  private static final int MM_PER_M = 1000;
+  private static final double HR_PER_SEC = 1 / 3600;
 
   private final Random rand = new Random();
 
@@ -75,25 +77,27 @@ public class ConveyorSampler extends FieldSampler {
 
   @Override
   public JsonNode sample() {
+    final double deflector = Math.max(0, deflectorDeg + rand.nextGaussian() * deflectorDegVar);
+    double moisture = Math.max(0, moisturePct + rand.nextGaussian() * moisturePctVar);
+    final double laser =
+            Math.max(0, (laserMilli + rand.nextGaussian() * laserMilliVar) * MM_PER_M);
+    final double flow = Math.max(0, flowTph + rand.nextGaussian() * flowTphVar);
     currentTime += -Math.log(rand.nextDouble()) * trainInterval;
 
     final ObjectNode objectNode = mapper.createObjectNode();
     objectNode.set("oreType", nodeFactory.textNode(oreTypes.get(rand.nextInt(3))));
     objectNode.set("prevOreType", nodeFactory.textNode(oreTypes.get(rand.nextInt(3))));
-    objectNode.set("deflectorDeg",
-                   nodeFactory.numberNode(deflectorDeg + rand.nextGaussian() * deflectorDegVar));
-    objectNode.set("moisturePct",
-                   nodeFactory.numberNode(moisturePct + rand.nextGaussian() * moisturePctVar));
-    objectNode.set("laserMilli",
-                   nodeFactory.numberNode(laserMilli + rand.nextGaussian() * laserMilliVar));
-    objectNode.set("flowTph", nodeFactory.numberNode(flowTph + rand.nextGaussian() * flowTphVar));
-    objectNode.set("delayHr", nodeFactory.numberNode(currentTime*0.0002777));
+    objectNode.set("deflectorDeg", nodeFactory.numberNode(Math.floor(deflector)));
+    objectNode.set("moisturePct", nodeFactory.numberNode(moisture));
+    objectNode.set("laserMilli", nodeFactory.numberNode(Math.floor(laser)));
+    objectNode.set("flowTph", nodeFactory.numberNode(flow));
+    objectNode.set("delayHr", nodeFactory.numberNode(currentTime * HR_PER_SEC));
     return objectNode;
   }
 
   @Override
   public String toString() {
-    return "ConveyorSampler{" +
+    return "MiningConveyorSampler{" +
             ", trainInterval=" + trainInterval +
             ", oreTypes=" + oreTypes +
             ", prevOreType='" + prevOreType + '\'' +

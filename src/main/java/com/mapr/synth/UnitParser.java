@@ -32,8 +32,8 @@ import java.util.regex.Pattern;
 @SuppressWarnings("WeakerAccess")
 public class UnitParser {
   private static final double INCH = 2.54e-2;
-  private static final double CM = 0.1;
-  private static final double MM = 0.01;
+  private static final double CM = 0.01;
+  private static final double MM = 0.001;
   private static final double FOOT = 12 * INCH;
   private static final double MILE = 5280 * FOOT;
   private static final double HOUR = TimeUnit.HOURS.toSeconds(1);
