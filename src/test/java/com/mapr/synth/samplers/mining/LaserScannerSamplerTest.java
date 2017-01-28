@@ -1,9 +1,10 @@
-package com.mapr.synth.samplers;
+package com.mapr.synth.samplers.mining;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mapr.synth.samplers.SchemaSampler;
 
 import org.junit.Test;
 
@@ -14,9 +15,9 @@ import java.util.Map;
 import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.number.IsCloseTo.closeTo;
+import static org.junit.Assert.*;
 
-
-public class MiningConveyorSamplerTest {
+public class LaserScannerSamplerTest {
   @Test
   public void testBasics() throws IOException {
     SchemaSampler s = new SchemaSampler(
@@ -27,7 +28,7 @@ public class MiningConveyorSamplerTest {
 
     for (int i = 0; i < 10000; i++) {
       JsonNode x = s.sample();
-      final JsonNode conveyor = x.get("conveyor");
+      final JsonNode conveyor = x.get("laser");
       final double t = conveyor.get("moisturePct").asDouble();
       double oldMean = mean.getOrDefault("moisturePct", 0.0);
       mean.put("moisturePct", oldMean + (t - oldMean) / (i + 1));
@@ -65,5 +66,4 @@ public class MiningConveyorSamplerTest {
     meanDelay /= 10000;
     assertThat(meanDelay, closeTo(6.0, 0.6));
   }
-
 }

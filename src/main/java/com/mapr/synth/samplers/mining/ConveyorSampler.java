@@ -1,10 +1,11 @@
-package com.mapr.synth.samplers;
+package com.mapr.synth.samplers.mining;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mapr.synth.UnitParser;
+import com.mapr.synth.samplers.FieldSampler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,13 +17,12 @@ import java.util.Random;
 
 
 @SuppressWarnings({"unused", "FieldCanBeLocal"})
-public class MiningConveyorSampler extends FieldSampler {
-  private static Logger log = LoggerFactory.getLogger(MiningConveyorSampler.class);
+public class ConveyorSampler extends FieldSampler {
+  private static Logger log = LoggerFactory.getLogger(ConveyorSampler.class);
 
   private static final ObjectMapper mapper = new ObjectMapper();
 
   private static final JsonNodeFactory nodeFactory = JsonNodeFactory.withExactBigDecimals(false);
-  private static final int MM_PER_M = 1000;
   private static final double HR_PER_SEC = 1.0 / 3600;
 
   private final Random rand = new Random();
@@ -34,8 +34,6 @@ public class MiningConveyorSampler extends FieldSampler {
   private double deflectorDegVar;
   private double moisturePct;
   private double moisturePctVar;
-  private double laserMilli;
-  private double laserMilliVar;
   private double flowTph;
   private double flowTphVar;
   private double currentTime = 0;
@@ -64,14 +62,6 @@ public class MiningConveyorSampler extends FieldSampler {
     this.moisturePctVar = UnitParser.parsePercentage(moistureVar);
   }
 
-  public void setLaser(String distance) {
-    this.laserMilli = UnitParser.parseDistance(distance);
-  }
-
-  public void setLaserVar(String distanceVar) {
-    this.laserMilliVar = UnitParser.parseDistance(distanceVar);
-  }
-
   public void setFlow(String flow) {
     this.flowTph = UnitParser.parseConveyorFlow(flow);
   }
@@ -86,8 +76,6 @@ public class MiningConveyorSampler extends FieldSampler {
 
     final double deflector = Math.max(0, deflectorDeg + rand.nextGaussian() * deflectorDegVar);
     double moisture = Math.max(0, moisturePct + rand.nextGaussian() * moisturePctVar);
-    final double laser =
-            Math.max(0, (laserMilli + rand.nextGaussian() * laserMilliVar) * MM_PER_M);
     final double flow = Math.max(0, flowTph + rand.nextGaussian() * flowTphVar);
     final double delayHr = currentTime * HR_PER_SEC;
 
@@ -96,7 +84,6 @@ public class MiningConveyorSampler extends FieldSampler {
     objectNode.set("prevOreType", nodeFactory.textNode(oreTypes.get(rand.nextInt(3))));
     objectNode.set("deflectorAngleDeg", nodeFactory.numberNode(roundTo(deflector, 1)));
     objectNode.set("moisturePct", nodeFactory.numberNode(roundTo(moisture, 1)));
-    objectNode.set("laserDistanceMilli", nodeFactory.numberNode(Math.floor(laser)));
     objectNode.set("flowRateTph", nodeFactory.numberNode(roundTo(flow, 2)));
     objectNode.set("delayHr", nodeFactory.numberNode(roundTo(delayHr, 2)));
     return objectNode;
@@ -109,7 +96,7 @@ public class MiningConveyorSampler extends FieldSampler {
 
   @Override
   public String toString() {
-    return "MiningConveyorSampler{" +
+    return "ConveyorSampler{" +
             "rand=" + rand +
             ", trainInterval=" + trainInterval +
             ", oreTypes=" + oreTypes +
@@ -118,8 +105,6 @@ public class MiningConveyorSampler extends FieldSampler {
             ", deflectorDegVar=" + deflectorDegVar +
             ", moisturePct=" + moisturePct +
             ", moisturePctVar=" + moisturePctVar +
-            ", laserMilli=" + laserMilli +
-            ", laserMilliVar=" + laserMilliVar +
             ", flowTph=" + flowTph +
             ", flowTphVar=" + flowTphVar +
             ", currentTime=" + currentTime +

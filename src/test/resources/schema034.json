@@ -8,8 +8,6 @@
     "deflectorVar": "5 deg",
     "moisture": "15 %",
     "moistureVar": "5 %",
-    "laser": "60 mm",
-    "laserVar": "60 mm",
     "flow": "9000 tph",
     "flowVar": "4500 tph"
   }

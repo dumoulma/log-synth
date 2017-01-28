@@ -1,0 +1,13 @@
+[
+  {
+    "name": "laser",
+    "class": "laser",
+    "arrival": "3/min",
+    "stats": {
+      "mean": "60 mm",
+      "var": "30 mm",
+      "min": "0 mm",
+      "max": "100 mm"
+    }
+  }
+]
