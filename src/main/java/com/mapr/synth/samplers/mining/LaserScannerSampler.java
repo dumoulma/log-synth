@@ -25,34 +25,37 @@ public class LaserScannerSampler extends FieldSampler {
 
   private double scanInterval = 0;
 
-  private double laserMilli;
-  private double laserMilliVar;
   private double currentTime = 0;
+
+  private double mean;
+  private double var;
+  private double min;
+  private double max;
 
   public void setArrival(String rate) {
     this.scanInterval = 1.0 / UnitParser.parseRate(rate);
   }
 
-  public void setStats(JsonNode jsonObject) {
-
-  }
-
-  public void setLaser(String distance) {
-    this.laserMilli = UnitParser.parseDistance(distance);
-  }
-
-  public void setLaserVar(String distanceVar) {
-    this.laserMilliVar = UnitParser.parseDistance(distanceVar);
+  public void setStats(JsonNode jsonNode) {
+    log.debug("stats: {}", jsonNode);
+    mean = UnitParser.parseDistance(jsonNode.get("mean").asText());
+    var = UnitParser.parseDistance(jsonNode.get("var").asText());
+    min = UnitParser.parseDistance(jsonNode.get("min").asText());
+    max = UnitParser.parseDistance(jsonNode.get("max").asText());
+    //log.debug("mean:{}, var:{}",mean,var);
+    //log.debug("[{},{}]", min, max);
   }
 
   @Override
   public JsonNode sample() {
     currentTime += -Math.log(rand.nextDouble()) * scanInterval;
-
-    final double laser =
-            Math.max(0, (laserMilli + rand.nextGaussian() * laserMilliVar) * MM_PER_M);
+    String id = String.format("s-%04x-%02x-%06x", rand.nextInt(), rand.nextInt(), rand.nextInt());
+    final double laserDistance = mean + rand.nextGaussian() * var;
+    final double laser = Math.max(min, Math.min(laserDistance, max)) * MM_PER_M;
+    // log.debug(id + ": dist:{} dist2:{} ts:{}", laserDistance, laser);
 
     final ObjectNode objectNode = mapper.createObjectNode();
+    objectNode.set("scannerId", nodeFactory.textNode(id));
     objectNode.set("laserDistanceMilli", nodeFactory.numberNode(Math.floor(laser)));
     objectNode.set("delaySec", nodeFactory.numberNode(currentTime));
     return objectNode;

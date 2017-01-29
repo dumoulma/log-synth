@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.mapr.synth.OperatingSystemSampler;
 import com.mapr.synth.drive.Commuter;
 import com.mapr.synth.samplers.mining.ConveyorSampler;
+import com.mapr.synth.samplers.mining.LaserScannerSampler;
 
 import org.apache.mahout.math.random.Sampler;
 
@@ -44,6 +45,7 @@ import java.io.IOException;
         @JsonSubTypes.Type(value = CommonPointOfCompromise.class, name = "common-point-of-compromise"),
         @JsonSubTypes.Type(value = Commuter.class, name = "commuter"),
         @JsonSubTypes.Type(value = ConveyorSampler.class, name = "conveyor"),
+        @JsonSubTypes.Type(value = LaserScannerSampler.class, name = "laser"),
         @JsonSubTypes.Type(value = CountrySampler.class, name = "country"),
         @JsonSubTypes.Type(value = DateSampler.class, name = "date"),
         @JsonSubTypes.Type(value = FileSampler.class, name = "lookup"),

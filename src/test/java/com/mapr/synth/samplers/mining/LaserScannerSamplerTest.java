@@ -7,45 +7,48 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mapr.synth.samplers.SchemaSampler;
 
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.number.IsCloseTo.closeTo;
-import static org.junit.Assert.*;
 
 public class LaserScannerSamplerTest {
-  @Test
-  public void testBasics() throws IOException {
-    SchemaSampler s = new SchemaSampler(
-            Resources.toString(Resources.getResource("schema034.json"), Charsets.UTF_8));
+  private static Logger log = LoggerFactory.getLogger(LaserScannerSamplerTest.class);
 
-    Map<String, Double> mean = new HashMap<>();
-    Map<String, Double> sd = new HashMap<>();
+  @Test
+  public void testBasics_laserDistanceField() throws IOException {
+    SchemaSampler s = new SchemaSampler(
+            Resources.toString(Resources.getResource("schema035.json"), Charsets.UTF_8));
+
+    double mean = 0;
+    double sd = 0;
 
     for (int i = 0; i < 10000; i++) {
-      JsonNode x = s.sample();
-      final JsonNode conveyor = x.get("laser");
-      final double t = conveyor.get("moisturePct").asDouble();
-      double oldMean = mean.getOrDefault("moisturePct", 0.0);
-      mean.put("moisturePct", oldMean + (t - oldMean) / (i + 1));
-      double newMean = mean.get("moisturePct");
-      double oldSd = sd.getOrDefault("moisturePct", 0.0);
-      sd.put("moisturePct", oldSd + ((t - oldMean) * (t - newMean) - oldSd) / (i + 1));
+      JsonNode sample = s.sample();
+      //log.debug("{}", sample);
+      final JsonNode conveyor = sample.get("laser");
+      final double t = conveyor.get("laserDistanceMilli").asDouble();
+      double oldMean = mean;
+      mean = oldMean + (t - oldMean) / (i + 1);
+
+      double oldSd = sd;
+      sd = oldSd + ((t - oldMean) * (t - mean) - oldSd) / (i + 1);
+      //log.debug("mean:{} sd: {}", mean, sd);
     }
 
-    assertThat(mean.get("moisturePct"), closeTo(15.0, 0.1));
-    assertThat(Math.sqrt(sd.get("moisturePct")), closeTo(5.0, 0.1));
+    assertThat(mean, closeTo(60.0, 2));
+    assertThat(Math.sqrt(sd), closeTo(30.0, 4));
 
   }
 
   @Test
   public void testArrivalTimes() throws IOException {
     SchemaSampler s = new SchemaSampler(Resources.toString(Resources.getResource
-            ("schema034.json"), Charsets.UTF_8));
+            ("schema035.json"), Charsets.UTF_8));
     double meanDelay = 0;
     // double exponentialMean = 0;
     // double sd = 0;
@@ -53,9 +56,9 @@ public class LaserScannerSamplerTest {
     for (int i = 0; i < 10000; i++) {
       // time to first sensor should show steady increase
       JsonNode x = s.sample();
-      double t = x.get("conveyor").get("delayHr").asDouble();
+      double t = x.get("laser").get("delaySec").asDouble();
       double delay = t - previous;
-      double expt = Math.exp(-delay / 3600);
+      double expt = Math.exp(-delay);
       assertTrue(expt >= 0);
       assertTrue(expt <= 1);
       // exponentialMean += expt;
@@ -64,6 +67,6 @@ public class LaserScannerSamplerTest {
       meanDelay += delay;
     }
     meanDelay /= 10000;
-    assertThat(meanDelay, closeTo(6.0, 0.6));
+    assertThat(meanDelay, closeTo(20.0, 1));
   }
 }
