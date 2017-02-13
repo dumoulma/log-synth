@@ -1,7 +1,6 @@
 package com.mapr.synth.samplers.mining;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mapr.synth.UnitParser;
@@ -16,13 +15,13 @@ import java.util.Random;
 public class LaserScannerSampler extends FieldSampler {
   private static Logger log = LoggerFactory.getLogger(LaserScannerSampler.class);
 
-  private static final ObjectMapper mapper = new ObjectMapper();
+  //private static final ObjectMapper mapper = new ObjectMapper();
   private static final JsonNodeFactory nodeFactory = JsonNodeFactory.withExactBigDecimals(false);
 
   private static final int MM_PER_M = 1000;
 
   private final Random rand = new Random();
-
+  private final String laserId = String.format("s-%04x", rand.nextInt());
   private double scanInterval = 0;
 
   private double currentTime = 0;
@@ -37,7 +36,7 @@ public class LaserScannerSampler extends FieldSampler {
   }
 
   public void setStats(JsonNode jsonNode) {
-    log.debug("stats: {}", jsonNode);
+    // log.debug("stats: {}", jsonNode);
     mean = UnitParser.parseDistance(jsonNode.get("mean").asText());
     var = UnitParser.parseDistance(jsonNode.get("var").asText());
     min = UnitParser.parseDistance(jsonNode.get("min").asText());
@@ -49,15 +48,22 @@ public class LaserScannerSampler extends FieldSampler {
   @Override
   public JsonNode sample() {
     currentTime += -Math.log(rand.nextDouble()) * scanInterval;
-    String id = String.format("s-%04x-%02x-%06x", rand.nextInt(), rand.nextInt(), rand.nextInt());
+
+    final double deltaSec = roundTo(currentTime, 2);
     final double laserDistance = mean + rand.nextGaussian() * var;
     final double laser = Math.max(min, Math.min(laserDistance, max)) * MM_PER_M;
     // log.debug(id + ": dist:{} dist2:{} ts:{}", laserDistance, laser);
 
-    final ObjectNode objectNode = mapper.createObjectNode();
-    objectNode.set("scannerId", nodeFactory.textNode(id));
-    objectNode.set("laserDistanceMilli", nodeFactory.numberNode(Math.floor(laser)));
-    objectNode.set("delaySec", nodeFactory.numberNode(currentTime));
+
+    final ObjectNode objectNode = nodeFactory.objectNode();
+    objectNode.set("scannerId", nodeFactory.textNode(laserId));
+    objectNode.set("distance", nodeFactory.numberNode(Math.floor(laser)));
+    objectNode.set("delaySec", nodeFactory.numberNode(deltaSec));
     return objectNode;
+  }
+
+  private double roundTo(double num, int precision) {
+    double scale = Math.pow(10, precision);
+    return Math.round(num * scale) / scale;
   }
 }
