@@ -1,2 +1,20 @@
-[{"name": "cdr1", "class": "cdr", "arrival": "3/min", "sites":10,
-  "callDuration":{"min":1,"max":400,"mean":100, "sd":50}}]
+[
+  {
+    "name": "cdr1",
+    "class": "cdr",
+    "arrival": "100/m",
+    "sites": 10,
+    "problemSite": 0,
+    "callDuration": {
+      "min": 5,
+      "max": 400,
+      "mean": 100,
+      "sd": 50
+    },
+    "possibleDisc": {
+      "startDelaySec": 600,
+      "min": 1,
+      "max": 5
+    }
+  }
+]
