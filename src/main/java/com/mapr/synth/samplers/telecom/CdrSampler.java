@@ -82,15 +82,15 @@ public class CdrSampler extends FieldSampler {
     final long elapsedMs = nextCallTs - startTs;
     prevCallTs = nextCallTs;
     final long siteId = random.nextInt(numSites);
-    final JsonNode callDuration = siteId != problemSiteId && elapsedMs > startDelayMs ?
-            callDurationSamples.get(cdIndex.getAndIncrement()):
-            possibleDiscs.get(pdIndex.getAndIncrement());
+    final double callDuration = siteId != problemSiteId || elapsedMs < startDelayMs ?
+            callDurationSamples.get(cdIndex.getAndIncrement()).asDouble():
+            possibleDiscs.get(pdIndex.getAndIncrement()).asDouble();
     final ObjectNode node = nodeFactory.objectNode();
     node.set("callingPartyNumber", nodeFactory.textNode(generatePhoneNumber(random)));
     node.set("calledPartyNumber", nodeFactory.textNode(generatePhoneNumber(random)));
     node.set("callType", callTypeSampler.sample());
     node.set("delayMs", nodeFactory.numberNode(delayMs));
-    node.set("callDuration", callDuration);
+    node.set("callDuration", nodeFactory.numberNode(Math.round(callDuration)));
     node.set("billingPhoneNumber", nodeFactory.textNode(generatePhoneNumber(random)));
     node.set("siteId", nodeFactory.numberNode(siteId));
 
