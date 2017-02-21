@@ -3,8 +3,10 @@ package com.mapr.synth.samplers.telecom;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.mapr.synth.samplers.ArrivalSampler;
 import com.mapr.synth.samplers.FieldSampler;
 import com.mapr.synth.samplers.StringSampler;
+import com.mapr.synth.samplers.VectorSampler;
 
 import java.util.Random;
 
@@ -17,16 +19,11 @@ public class CdrSampler extends FieldSampler {
   private final Random random;
 
   private CallTypeSampler callTypeSampler = new CallTypeSampler();
+  private VectorSampler callDurationSample = new VectorSampler();
+  private ArrivalSampler arrivalSampler = new ArrivalSampler();
 
-  private String callingPartyNumber;
-  private String calledPartyNumber;
-  private String callType;
-  private java.util.Date prevCalledDate;
-  private java.util.Date calledDate;
-  private long durationInSeconds;
-  private String billingPhoneNumber;
-  private long siteId;
-  private boolean used2Gdata;
+  private long numSites;
+
 
   public CdrSampler() {
     this(new Random());
@@ -37,22 +34,38 @@ public class CdrSampler extends FieldSampler {
     this.random = random;
   }
 
+  public void setSites(long numSites) {
+    this.numSites = numSites;
+  }
+
+  public void setCallDuration(JsonNode node) {
+    callDurationSample.setMin(node.get("min").asDouble());
+    callDurationSample.setMean(node.get("mean").asDouble());
+    callDurationSample.setSd(node.get("sd").asDouble());
+    callDurationSample.setMax(node.get("max").asDouble());
+  }
+
+  public void setArrival(String arrivalRate) {
+    arrivalSampler.setRate(arrivalRate);
+  }
+
   @Override
   public JsonNode sample() {
     final ObjectNode node = nodeFactory.objectNode();
     node.set("callingPartyNumber", nodeFactory.textNode(generatePhoneNumber(random, 10)));
     node.set("calledPartyNumber", nodeFactory.textNode(generatePhoneNumber(random, 10)));
     node.set("callType", callTypeSampler.sample());
-    node.set("calledDate", nodeFactory.numberNode(calledDate.getTime()));
-    node.set("durationInSeconds", nodeFactory.numberNode(durationInSeconds));
+
+    node.set("calledDate", arrivalSampler.sample());
+    node.set("durationInSeconds", callDurationSample.sample());
 
     node.set("billingPhoneNumber", nodeFactory.textNode(generatePhoneNumber(random, 10)));
 
     // 10 sites
-    node.set("siteId", nodeFactory.numberNode(random.nextLong() % 10L));
+    node.set("siteId", nodeFactory.numberNode(random.nextLong() % numSites));
 
     // about 21%
-    node.set("used2Gdata", nodeFactory.booleanNode(random.nextGaussian() < -2.0 ? true : false));
+    node.set("used2Gdata", nodeFactory.booleanNode(random.nextGaussian() < -2.0));
     return node;
   }
 

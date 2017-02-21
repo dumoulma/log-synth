@@ -28,6 +28,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.mapr.synth.OperatingSystemSampler;
 import com.mapr.synth.drive.Commuter;
+import com.mapr.synth.samplers.telecom.CdrSampler;
+
 import org.apache.mahout.math.random.Sampler;
 
 import java.io.IOException;
@@ -67,6 +69,7 @@ import java.io.IOException;
         @JsonSubTypes.Type(value = VinSampler.class, name = "vin"),
         @JsonSubTypes.Type(value = WordSampler.class, name = "word"),
         @JsonSubTypes.Type(value = ZipSampler.class, name = "zip"),
+        @JsonSubTypes.Type(value = CdrSampler.class, name = "cdr")
 
 })
 public abstract class FieldSampler implements Sampler<JsonNode> {

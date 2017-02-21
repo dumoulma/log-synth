@@ -1,1 +1,2 @@
-[{"name": "uniform", "class": "cdr", "arrival": "3/min"}]
+[{"name": "cdr1", "class": "cdr", "arrival": "3/min", "sites":10,
+  "callDuration":{"min":1,"max":400,"mean":100, "sd":50}}]
