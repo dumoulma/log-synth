@@ -12,7 +12,7 @@ import java.text.ParseException;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class CdrSampler extends FieldSampler {
 
   private static final JsonNodeFactory nodeFactory = JsonNodeFactory.withExactBigDecimals(false);
@@ -31,6 +31,8 @@ public class CdrSampler extends FieldSampler {
   private long startTs;
   private long prevCallTs;
   private int startDelayMs = 0;
+  private JsonNode callDurationNode;
+  private JsonNode problemCdNode;
 
   public CdrSampler() {
     this(new Random());
@@ -45,7 +47,8 @@ public class CdrSampler extends FieldSampler {
     this.numSites = Integer.parseInt(numSites);
   }
 
-  public void setCallDuration(JsonNode node) {
+  void setCallDuration(JsonNode node) {
+    this.callDurationNode = node;
     VectorSampler sampler = new VectorSampler();
     sampler.setMin(node.get("min").asDouble());
     sampler.setMean(node.get("mean").asDouble());
@@ -55,7 +58,8 @@ public class CdrSampler extends FieldSampler {
     callDurationSamples = sampler.sample();
   }
 
-  public void setPossibleDisc(JsonNode node) {
+  void setPossibleDisc(JsonNode node) {
+    this.problemCdNode = node;
     VectorSampler sampler = new VectorSampler();
     sampler.setMin(node.get("min").asDouble());
     sampler.setMax(node.get("max").asDouble());
@@ -77,14 +81,25 @@ public class CdrSampler extends FieldSampler {
 
   @Override
   public JsonNode sample() {
+    if (cdIndex.get() >= 10000) {
+      setCallDuration(callDurationNode);
+      cdIndex.set(0);
+    }
+    if (pdIndex.get() >= 10000) {
+      setPossibleDisc(problemCdNode);
+      pdIndex.set(0);
+    }
     final long nextCallTs = arrivalSampler.sample().asLong();
-    double delayMs = (nextCallTs - prevCallTs);
-    final long elapsedMs = nextCallTs - startTs;
-    prevCallTs = nextCallTs;
+    final long delayMs = nextCallTs - startTs;
     final long siteId = random.nextInt(numSites);
-    final double callDuration = siteId != problemSiteId || elapsedMs < startDelayMs ?
-            callDurationSamples.get(cdIndex.getAndIncrement()).asDouble():
+    final double callDuration = siteId != problemSiteId || delayMs < startDelayMs ?
+            callDurationSamples.get(cdIndex.getAndIncrement()).asDouble() :
             possibleDiscs.get(pdIndex.getAndIncrement()).asDouble();
+
+    return getJsonNodes(delayMs, siteId, callDuration);
+  }
+
+  private ObjectNode getJsonNodes(long delayMs, long siteId, double callDuration) {
     final ObjectNode node = nodeFactory.objectNode();
     node.set("callingPartyNumber", nodeFactory.textNode(generatePhoneNumber(random)));
     node.set("calledPartyNumber", nodeFactory.textNode(generatePhoneNumber(random)));
@@ -93,9 +108,6 @@ public class CdrSampler extends FieldSampler {
     node.set("callDuration", nodeFactory.numberNode(Math.round(callDuration)));
     node.set("billingPhoneNumber", nodeFactory.textNode(generatePhoneNumber(random)));
     node.set("siteId", nodeFactory.numberNode(siteId));
-
-    // about 21% will be 2G with this setting
-    node.set("used2Gdata", nodeFactory.booleanNode(random.nextGaussian() < -2.0));
     return node;
   }
 

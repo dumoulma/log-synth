@@ -26,10 +26,15 @@ import com.mapr.synth.samplers.SchemaSampler;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.OptionalDouble;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class CdrSamplerTest {
@@ -75,6 +80,32 @@ public class CdrSamplerTest {
     assertTrue(average.isPresent());
     System.out.println("Avg for problem site 0: " + average.getAsDouble());
     assertEquals(3, average.getAsDouble(), 0.1);
+  }
+
+  /*
+  CALL_2G	5.0
+  CALL_3G	20.0
+  CALL_LTE	20.0
+  DATA_3G	35.0
+  DATA_LTE	20.0
+   */
+  @Test
+  public void testCallTypeDistribution() throws IOException {
+    final int TOTAL_EVENTS = 9000;
+    final Map<String, Integer> histogram = IntStream.range(0, 10000).skip(1000).boxed()
+            .map(i -> s.sample().get("cdr1"))
+            .map(x -> x.get("callType").textValue())
+            .collect(Collectors.groupingBy(Function.identity(),
+                                           Collectors.mapping(i -> 1, Collectors.summingInt(
+                                                   s -> s.intValue()))));
+
+    assertThat(histogram.size(), equalTo(5));
+    histogram.forEach((k, v) -> System.out.println("k: " + k + " v: " + v));
+    assertEquals(histogram.get("CALL_2G"), 0.05 * TOTAL_EVENTS,50);
+    assertEquals(histogram.get("CALL_3G"), 0.2 * TOTAL_EVENTS,100);
+    assertEquals(histogram.get("CALL_LTE"), 0.2 * TOTAL_EVENTS,100);
+    assertEquals(histogram.get("DATA_3G"), 0.35 * TOTAL_EVENTS,100);
+    assertEquals(histogram.get("DATA_LTE"),0.2 * TOTAL_EVENTS,100);
   }
 
 
