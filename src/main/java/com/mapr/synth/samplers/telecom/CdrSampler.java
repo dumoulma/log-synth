@@ -106,8 +106,7 @@ public class CdrSampler extends FieldSampler {
     node.set("callType", callTypeSampler.sample());
     node.set("delayMs", nodeFactory.numberNode(delayMs));
     node.set("callDuration", nodeFactory.numberNode(Math.round(callDuration)));
-    node.set("billingPhoneNumber", nodeFactory.textNode(generatePhoneNumber(random)));
-    node.set("siteId", nodeFactory.numberNode(siteId));
+    node.set("siteId", nodeFactory.textNode(String.valueOf(siteId)));
     return node;
   }
 
